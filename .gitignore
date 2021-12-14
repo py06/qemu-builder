@@ -1,4 +1,5 @@
 build/
 download/
 prefix/
+src/SoftFloat-3e/
 qemu-system-kvx
