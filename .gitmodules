@@ -1,0 +1,8 @@
+[submodule "src/qemu"]
+	path = src/qemu
+	url = ../qemu.git
+	branch = coolidge-6.1
+[submodule "src/lao"]
+	path = src/lao
+	url = ../lao.git
+	branch = coolidge
