@@ -1,4 +1,4 @@
-PREFIX=prefix
+PREFIX ?=prefix
 BIN_DIR=$(PREFIX)/bin
 LIB_DIR=$(PREFIX)/lib
 INCLUDE_DIR=$(PREFIX)/include
