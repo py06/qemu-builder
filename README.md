@@ -12,7 +12,7 @@ library uses the CMake build system. On a Debian/Ubuntu-like system, you can
 install the following packages:
 
 ```
-apt install git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja cmake
+apt install git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build bison cmake
 ```
 
 ## Customizing the installation
