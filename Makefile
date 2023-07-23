@@ -1,12 +1,14 @@
-PREFIX ?=prefix
+PREFIX ?= $(PWD)
 BIN_DIR=$(PREFIX)/bin
 LIB_DIR=$(PREFIX)/lib
 INCLUDE_DIR=$(PREFIX)/include
 
-SRC_DIR=src
+SRC_DIR=$(PWD)/src
+BUILD=$(PWD)/build
+DL_DIR=$(PWD)/download
 
 SOFTFLOAT_ZIP_NAME=SoftFloat-3e.zip
-SOFTFLOAT_ZIP=download/$(SOFTFLOAT_ZIP_NAME)
+SOFTFLOAT_ZIP=$(DL_DIR)/$(SOFTFLOAT_ZIP_NAME)
 SOFTFLOAT_URL=http://www.jhauser.us/arithmetic/$(SOFTFLOAT_ZIP_NAME)
 SOFTFLOAT_SRC=$(SRC_DIR)/SoftFloat-3e
 SOFTFLOAT_BUILD=$(SOFTFLOAT_SRC)/build/Linux-x86_64-GCC
@@ -17,8 +19,6 @@ SOFTFLOAT_INCLUDE_DIR=$(SOFTFLOAT_SRC)/source/include
 SOFTFLOAT_INCLUDES=softfloat.h softfloat_types.h
 SOFTFLOAT_SRC_INCLUDES=$(addprefix $(SOFTFLOAT_INCLUDE_DIR)/,$(SOFTFLOAT_INCLUDES))
 SOFTFLOAT_INSTALL_INCLUDES=$(addprefix $(INCLUDE_DIR)/,$(SOFTFLOAT_INCLUDES))
-
-BUILD=build
 
 LAO_SRC=$(SRC_DIR)/lao
 LAO_BUILD=$(BUILD)/lao
@@ -62,7 +62,7 @@ $(SOFTFLOAT_ZIP):
 softfloat-unzip: $(SOFTFLOAT_SRC) softfloat-get
 
 $(SOFTFLOAT_SRC): $(SOFTFLOAT_ZIP)
-	cd $(SRC_DIR); unzip -DD $(PWD)/$(SOFTFLOAT_ZIP)
+	cd $(SRC_DIR); unzip -DD $(SOFTFLOAT_ZIP)
 
 
 .PHONY: softfloat-build
@@ -86,14 +86,14 @@ lao-cmake: $(LAO_BUILD)/Makefile
 
 $(LAO_BUILD)/Makefile: $(SOFTFLOAT_INSTALL_LIB) $(SOFTFLOAT_INSTALL_INCLUDES) | $(LAO_BUILD)
 	cd $(LAO_BUILD); \
-	cmake $(PWD)/$(LAO_SRC)/LAO \
-		-DCMAKE_INSTALL_PREFIX=$(PWD)/$(PREFIX) \
-		-DFAMILY=$(PWD)/$(LAO_SRC)/LAO/kvx \
+	cmake $(LAO_SRC)/LAO \
+		-DCMAKE_INSTALL_PREFIX=$(PREFIX) \
+		-DFAMILY=$(LAO_SRC)/LAO/kvx \
 		-DTARGET=kv3 \
 		-DYAML_ENABLED=off \
 		-DGLPK_ENABLED=off \
-		-DSOFTFLOAT_PREFIX=$(PWD)/$(PREFIX) \
-		-DKALRAY_INTERNAL=$(PWD)/$(PREFIX)/kalray_internal
+		-DSOFTFLOAT_PREFIX=$(PREFIX) \
+		-DKALRAY_INTERNAL=$(PREFIX)/kalray_internal
 
 .PHONY: lao-build
 lao-build: $(LAO_BUILD)/PRO/lao.so
@@ -113,10 +113,10 @@ qemu-configure: $(QEMU_BUILD)/config.status
 
 $(QEMU_BUILD)/config.status: $(PREFIX)/lib/lao/lao.so | $(QEMU_BUILD)
 	cd $(QEMU_BUILD); \
-	$(PWD)/$(QEMU_SRC)/configure \
-		--prefix=$(PWD)/$(PREFIX) \
+	$(QEMU_SRC)/configure \
+		--prefix=$(PREFIX) \
 		--target-list=kvx-softmmu \
-		--with-lao=$(PWD)/$(PREFIX) \
+		--with-lao=$(PREFIX) \
 		--disable-werror
 
 .PHONY: qemu-build
@@ -143,10 +143,23 @@ qemu-system-kvx: $(BIN_DIR)/qemu-system-kvx
 clean:
 	test -d $(SOFTFLOAT_BUILD) && $(MAKE) -C $(SOFTFLOAT_BUILD) clean || true
 	rm -rf $(LAO_BUILD) $(QEMU_BUILD)
+	rm -rf $(BUILD)
+	rm -rf $(DL_DIR)
 
 .PHONY: distclean
 distclean: clean
+ifneq ($(PREFIX), $(PWD))
 	rm -rf $(PREFIX)
+else
+	rm -rf $(PREFIX)/lib
+	rm -rf $(PREFIX)/bin
+	rm -rf $(PREFIX)/include
+	rm -rf $(PREFIX)/include
+	rm -rf $(PREFIX)/libexec
+	rm -rf $(PREFIX)/share
+	rm -rf $(PREFIX)/var
+	rm -rf $(PREFIX)/kalray_internal
+endif
 	rm -f qemu-system-kvx
 	rm -rf $(SOFTFLOAT_SRC)
 	rm -f $(SOFTFLOAT_ZIP)
